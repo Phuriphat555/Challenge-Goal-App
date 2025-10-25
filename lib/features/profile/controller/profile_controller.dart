@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/image_service.dart';
 import '../model/user_model.dart';
+import '../model/subscription_model.dart';
 
 /// Profile state that holds all profile-related data and UI states
 class ProfileState {
@@ -11,6 +12,8 @@ class ProfileState {
   final String? error;
   final bool isEditing;
   final bool isSuccess;
+  final SubscriptionModel? subscription;
+  final bool isSubscriptionLoading;
 
   const ProfileState({
     this.isLoading = false,
@@ -18,6 +21,8 @@ class ProfileState {
     this.error,
     this.isEditing = false,
     this.isSuccess = false,
+    this.subscription,
+    this.isSubscriptionLoading = false,
   });
 
   /// Creates a copy of the current state with optional parameter updates
@@ -27,6 +32,8 @@ class ProfileState {
     String? error,
     bool? isEditing,
     bool? isSuccess,
+    SubscriptionModel? subscription,
+    bool? isSubscriptionLoading,
   }) {
     return ProfileState(
       isLoading: isLoading ?? this.isLoading,
@@ -34,6 +41,8 @@ class ProfileState {
       error: error,
       isEditing: isEditing ?? this.isEditing,
       isSuccess: isSuccess ?? this.isSuccess,
+      subscription: subscription ?? this.subscription,
+      isSubscriptionLoading: isSubscriptionLoading ?? this.isSubscriptionLoading,
     );
   }
 
@@ -55,9 +64,10 @@ class ProfileController extends StateNotifier<ProfileState> {
     _initializeProfile();
   }
 
-  /// Initialize profile by loading user data
+  /// Initialize profile by loading user data and subscription
   Future<void> _initializeProfile() async {
     await loadProfile();
+    await loadSubscription();
   }
 
   /// Load user profile from storage and API
@@ -237,6 +247,130 @@ class ProfileController extends StateNotifier<ProfileState> {
       state = const ProfileState(); // Reset to initial state
     } catch (e) {
       _handleError('Failed to logout: ${e.toString()}');
+    }
+  }
+
+  /// === Subscription Management Methods ===
+
+  /// Load user subscription data
+  Future<void> loadSubscription() async {
+    if (state.isSubscriptionLoading) return;
+
+    state = state.copyWith(isSubscriptionLoading: true, error: null);
+
+    try {
+      // Simulate API call - in real app, this would call your backend
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // For demo purposes, return a free plan subscription
+      final subscription = DefaultPlans.freePlan.copyWith(
+        startDate: DateTime.now().subtract(const Duration(days: 30)),
+        endDate: null, // Free plan doesn't expire
+      );
+      
+      state = state.copyWith(
+        subscription: subscription,
+        isSubscriptionLoading: false,
+      );
+    } catch (e) {
+      _handleError('Failed to load subscription: ${e.toString()}');
+    }
+  }
+
+  /// Upgrade to a premium subscription
+  Future<void> upgradeSubscription(String planType) async {
+    if (state.isSubscriptionLoading) return;
+
+    state = state.copyWith(isSubscriptionLoading: true, error: null);
+
+    try {
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 2));
+      
+      SubscriptionModel newSubscription;
+      switch (planType) {
+        case 'premium':
+          newSubscription = DefaultPlans.premiumPlan.copyWith(
+            isActive: true,
+            startDate: DateTime.now(),
+            endDate: DateTime.now().add(const Duration(days: 30)),
+            nextBillingDate: DateTime.now().add(const Duration(days: 30)),
+            lastPaymentDate: DateTime.now(),
+          );
+          break;
+        case 'pro':
+          newSubscription = DefaultPlans.proPlan.copyWith(
+            isActive: true,
+            startDate: DateTime.now(),
+            endDate: DateTime.now().add(const Duration(days: 30)),
+            nextBillingDate: DateTime.now().add(const Duration(days: 30)),
+            lastPaymentDate: DateTime.now(),
+          );
+          break;
+        default:
+          throw Exception('Invalid plan type');
+      }
+      
+      state = state.copyWith(
+        subscription: newSubscription,
+        isSubscriptionLoading: false,
+        isSuccess: true,
+      );
+    } catch (e) {
+      _handleError('Failed to upgrade subscription: ${e.toString()}');
+    }
+  }
+
+  /// Cancel subscription
+  Future<void> cancelSubscription() async {
+    if (state.isSubscriptionLoading || state.subscription == null) return;
+
+    state = state.copyWith(isSubscriptionLoading: true, error: null);
+
+    try {
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 1));
+      
+      final updatedSubscription = state.subscription!.copyWith(
+        isActive: false,
+        autoRenew: false,
+      );
+      
+      state = state.copyWith(
+        subscription: updatedSubscription,
+        isSubscriptionLoading: false,
+        isSuccess: true,
+      );
+    } catch (e) {
+      _handleError('Failed to cancel subscription: ${e.toString()}');
+    }
+  }
+
+  /// Reactivate subscription
+  Future<void> reactivateSubscription() async {
+    if (state.isSubscriptionLoading || state.subscription == null) return;
+
+    state = state.copyWith(isSubscriptionLoading: true, error: null);
+
+    try {
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 1));
+      
+      final updatedSubscription = state.subscription!.copyWith(
+        isActive: true,
+        autoRenew: true,
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(days: 30)),
+        nextBillingDate: DateTime.now().add(const Duration(days: 30)),
+      );
+      
+      state = state.copyWith(
+        subscription: updatedSubscription,
+        isSubscriptionLoading: false,
+        isSuccess: true,
+      );
+    } catch (e) {
+      _handleError('Failed to reactivate subscription: ${e.toString()}');
     }
   }
 

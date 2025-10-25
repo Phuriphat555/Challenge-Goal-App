@@ -7,6 +7,7 @@ import '../features/home/view/home_page.dart';
 import '../features/friends/view/friends_home_page.dart';
 import '../features/goal/view/goal_page.dart';
 import '../features/goal/view/goal_detail_page.dart';
+import '../features/friend/view/friend_page.dart';
 import '../services/auth_service.dart';
 import '../core/constants/app_constants.dart';
 
@@ -97,6 +98,12 @@ class AppRoutes {
       ),
 
       GoRoute(
+        path: AppConstants.friendRoute,
+        name: 'friend',
+        builder: (context, state) => const FriendPage(),
+      ),
+
+      GoRoute(
         path: '/friends/:friendName',
         name: 'friends-home',
         builder: (context, state) {
@@ -151,4 +158,5 @@ extension AppRouterExtension on GoRouter {
   void goToResetPassword() => go(AppConstants.resetPasswordRoute);
   void goToHome() => go(AppConstants.homeRoute);
   void goToGoals() => go(AppConstants.goalRoute);
+  void goToFriends() => go(AppConstants.friendRoute);
 }

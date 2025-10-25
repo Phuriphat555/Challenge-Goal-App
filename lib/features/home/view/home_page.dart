@@ -174,8 +174,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       child: ElevatedButton(
         onPressed: () {
-          // Navigate to friends page with a sample friend
-          context.go('/friends/Alex?avatarUrl=assets/images/avatar.png');
+          // Navigate to friend page
+          context.go(AppConstants.friendRoute);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
