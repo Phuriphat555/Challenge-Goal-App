@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../controller/profile_controller.dart';
 import '../model/user_model.dart';
+import '../model/subscription_model.dart';
 import '../../../services/image_service.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -205,6 +206,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           _buildPersonalInfo(state.user!),     // ข้อมูลส่วนตัว
           const SizedBox(height: 30),
           _buildAccountSection(),              // การจัดการบัญชี
+          const SizedBox(height: 30),
+          _buildSubscriptionSection(),        // การจัดการ subscription
           const SizedBox(height: 30),
           _buildDangerZone(),                  // ส่วนอันตราย (logout)
           const SizedBox(height: 30),
@@ -422,6 +425,508 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             'Reset password via email',
             () => _showResetPasswordDialog(),
             isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // === Subscription Section ===
+  
+  /// สร้างส่วนการจัดการ subscription
+  Widget _buildSubscriptionSection() {
+    final profileState = ref.watch(profileControllerProvider);
+    final subscription = profileState.subscription;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                const Icon(Icons.card_membership_outlined, color: Colors.black),
+                const SizedBox(width: 12),
+                const Text(
+                  'Subscription',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (profileState.isSubscriptionLoading)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (subscription != null)
+            _buildSubscriptionContent(subscription)
+          else
+            _buildNoSubscriptionContent(),
+        ],
+      ),
+    );
+  }
+
+  /// สร้างเนื้อหา subscription
+  Widget _buildSubscriptionContent(SubscriptionModel subscription) {
+    return Column(
+      children: [
+        // Current Plan Info
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _getSubscriptionColor(subscription).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _getSubscriptionColor(subscription).withOpacity(0.3),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _getSubscriptionIcon(subscription),
+                    color: _getSubscriptionColor(subscription),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    subscription.planName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _getSubscriptionColor(subscription),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(subscription),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      subscription.statusText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (subscription.planType != 'free') ...[
+                Text(
+                  '${subscription.formattedPrice} ${subscription.formattedBillingCycle}',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+                if (subscription.nextBillingDate != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Next billing: ${_formatDate(subscription.nextBillingDate!)}',
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ] else ...[
+                Text(
+                  'Free plan with basic features',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Features List
+        if (subscription.features.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Plan Features:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...subscription.features.map((feature) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        size: 16,
+                        color: Colors.green.shade600,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          feature,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        
+        // Action Buttons
+        _buildSubscriptionActions(subscription),
+      ],
+    );
+  }
+
+  /// สร้างเนื้อหาสำหรับกรณีไม่มี subscription
+  Widget _buildNoSubscriptionContent() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(
+            Icons.card_membership_outlined,
+            size: 48,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Active Subscription',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Choose a plan to unlock premium features',
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          _buildUpgradeButtons(),
+        ],
+      ),
+    );
+  }
+
+  /// สร้างปุ่มสำหรับ upgrade subscription
+  Widget _buildUpgradeButtons() {
+    return Column(
+      children: [
+        _buildUpgradeButton(
+          'Premium Plan',
+          '\$9.99/month',
+          'Unlimited goals, advanced analytics, priority support',
+          Colors.blue,
+          () => _upgradeToPlan('premium'),
+        ),
+        const SizedBox(height: 12),
+        _buildUpgradeButton(
+          'Pro Plan',
+          '\$19.99/month',
+          'Everything in Premium + team collaboration, API access',
+          Colors.purple,
+          () => _upgradeToPlan('pro'),
+        ),
+      ],
+    );
+  }
+
+  /// สร้างปุ่ม upgrade แต่ละ plan
+  Widget _buildUpgradeButton(
+    String title,
+    String price,
+    String description,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+                Text(
+                  price,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// สร้างปุ่มการกระทำสำหรับ subscription
+  Widget _buildSubscriptionActions(SubscriptionModel subscription) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Row(
+        children: [
+          if (subscription.planType == 'free') ...[
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _showUpgradeDialog(),
+                icon: const Icon(Icons.upgrade, size: 18),
+                label: const Text('Upgrade'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ] else if (subscription.isActive) ...[
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _showCancelDialog(),
+                icon: const Icon(Icons.cancel_outlined, size: 18),
+                label: const Text('Cancel'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red.shade600,
+                  side: BorderSide(color: Colors.red.shade300),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _showManageDialog(),
+                icon: const Icon(Icons.settings, size: 18),
+                label: const Text('Manage'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ] else ...[
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _reactivateSubscription(),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Reactivate'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // === Subscription Helper Methods ===
+
+  Color _getSubscriptionColor(SubscriptionModel subscription) {
+    switch (subscription.planType) {
+      case 'free':
+        return Colors.grey;
+      case 'premium':
+        return Colors.blue;
+      case 'pro':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getSubscriptionIcon(SubscriptionModel subscription) {
+    switch (subscription.planType) {
+      case 'free':
+        return Icons.person_outline;
+      case 'premium':
+        return Icons.star_outline;
+      case 'pro':
+        return Icons.diamond_outlined;
+      default:
+        return Icons.card_membership_outlined;
+    }
+  }
+
+  Color _getStatusColor(SubscriptionModel subscription) {
+    if (!subscription.isActive) return Colors.red;
+    if (subscription.isExpired) return Colors.red;
+    if (subscription.isExpiringSoon) return Colors.orange;
+    return Colors.green;
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  // === Subscription Action Methods ===
+
+  void _upgradeToPlan(String planType) {
+    ref.read(profileControllerProvider.notifier).upgradeSubscription(planType);
+  }
+
+  void _reactivateSubscription() {
+    ref.read(profileControllerProvider.notifier).reactivateSubscription();
+  }
+
+  void _showUpgradeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Upgrade Plan'),
+        content: const Text('Choose a plan to upgrade your subscription.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _upgradeToPlan('premium');
+            },
+            child: const Text('Premium'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _upgradeToPlan('pro');
+            },
+            child: const Text('Pro'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCancelDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Subscription'),
+        content: const Text('Are you sure you want to cancel your subscription? You will lose access to premium features.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep Subscription'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(profileControllerProvider.notifier).cancelSubscription();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Cancel Subscription'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManageDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Manage Subscription'),
+        content: const Text('Subscription management features will be available soon.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
         ],
       ),

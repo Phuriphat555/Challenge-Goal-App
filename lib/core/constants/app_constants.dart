@@ -18,6 +18,7 @@ class AppConstants {
   static const String dashboardRoute = '/dashboard';
   static const String goalRoute = '/goals';
   static const String goalDetailRoute = '/goals/detail';
+  static const String friendRoute = '/friends';
   static const String homeRoute = '/home';
   static const String settingsRoute = '/settings';
   

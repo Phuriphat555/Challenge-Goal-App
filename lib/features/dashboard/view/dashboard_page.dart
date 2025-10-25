@@ -16,7 +16,18 @@ class DashboardPage extends StatelessWidget {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0.5,
-        actions: const [SizedBox(width: 8)],
+        actions: [
+          IconButton(
+            onPressed: () => context.go(AppConstants.profileRoute),
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Profile',
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.blue.shade50,
+              foregroundColor: Colors.blue.shade700,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -28,11 +39,33 @@ class DashboardPage extends StatelessWidget {
               _Header(),
               const SizedBox(height: 16),
 
-              // Goal button
-              _GradientButton(
-                onPressed: () => context.go(AppConstants.goalRoute),
-                icon: Icons.flag_outlined,
-                label: 'Goal',
+              // Navigation buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: _GradientButton(
+                      onPressed: () => context.go(AppConstants.goalRoute),
+                      icon: Icons.flag_outlined,
+                      label: 'Goal',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _GradientButton(
+                      onPressed: () => context.go(AppConstants.friendRoute),
+                      icon: Icons.people_outlined,
+                      label: 'Friend',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _GradientButton(
+                      onPressed: () => context.go(AppConstants.profileRoute),
+                      icon: Icons.person_outline,
+                      label: 'Profile',
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 

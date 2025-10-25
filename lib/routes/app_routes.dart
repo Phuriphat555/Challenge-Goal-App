@@ -6,6 +6,7 @@ import '../features/profile/view/reset_password_page.dart';
 import '../features/dashboard/view/dashboard_page.dart';
 import '../features/goal/view/goal_page.dart';
 import '../features/goal/view/goal_detail_page.dart';
+import '../features/friend/view/friend_page.dart';
 import '../services/auth_service.dart';
 import '../core/constants/app_constants.dart';
 
@@ -102,6 +103,15 @@ class AppRoutes {
         },
       ),
 
+      /// หน้า Friends - จัดการเพื่อนและฟีเจอร์สังคม
+      /// Path: '/friends'
+      /// Access: Protected (ต้อง login ก่อน)
+      GoRoute(
+        path: AppConstants.friendRoute,
+        name: 'friends',
+        builder: (context, state) => const FriendPage(),
+      ),
+
       /// หน้า Reset Password - รีเซ็ตรหัสผ่าน
       /// Path: '/reset-password'
       /// Access: Public (ทุกคนเข้าได้)
@@ -179,4 +189,5 @@ extension AppRouterExtension on GoRouter {
   void goToResetPassword() => go(AppConstants.resetPasswordRoute);
   void goToDashboard() => go(AppConstants.dashboardRoute);
   void goToGoals() => go(AppConstants.goalRoute);
+  void goToFriends() => go(AppConstants.friendRoute);
 }
