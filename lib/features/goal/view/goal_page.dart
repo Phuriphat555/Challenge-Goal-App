@@ -31,7 +31,7 @@ class _GoalPageState extends State<GoalPage> {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.go(AppConstants.dashboardRoute),
+                onPressed: () => context.go(AppConstants.homeRoute),
               ),
               const SizedBox(width: 4),
               TextButton.icon(
