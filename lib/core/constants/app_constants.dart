@@ -21,6 +21,7 @@ class AppConstants {
   static const String friendRoute = '/friends';
   static const String homeRoute = '/home';
   static const String settingsRoute = '/settings';
+  static const String friendsRoute = '/friends';
   
   // Validation constants
   static const int minPasswordLength = 6;

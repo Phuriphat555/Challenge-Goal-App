@@ -178,7 +178,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       foregroundColor: Colors.black,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios),
-        onPressed: () => context.go(AppConstants.loginRoute),
+        // Navigate back to home instead of login/previous page
+        onPressed: () => context.go(AppConstants.homeRoute),
       ),
     );
   }
@@ -1588,7 +1589,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             SizedBox(height: 8),
             Text(
               'Please check your email and follow the instructions to reset your password.',
-              style: const TextStyle(color: Colors.black87), // เปลี่ยนเป็น Colors.black87 เพื่อให้อ่านง่าย
+              style: TextStyle(color: Colors.black87), // เปลี่ยนเป็น Colors.black87 เพื่อให้อ่านง่าย
             ),
           ],
         ),

@@ -230,20 +230,25 @@ class _FriendPageState extends State<FriendPage> {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final friend = _friends[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
+        return GestureDetector(
+          onTap: () {
+            // Navigate to friend's profile page
+            context.go('/friends/${friend.name}?avatarUrl=assets/images/avatar.png');
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
             children: [
               CircleAvatar(
                 backgroundColor: Colors.blue.shade100,
@@ -319,6 +324,7 @@ class _FriendPageState extends State<FriendPage> {
                 ],
               ),
             ],
+            ),
           ),
         );
       },
