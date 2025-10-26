@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../controller/home_controller.dart';
@@ -12,12 +13,23 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  String? _savedCostume;
   @override
   void initState() {
     super.initState();
     // Initialize the home controller when the page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(homeControllerProvider.notifier).initialize();
+    });
+    // load saved costume
+    _loadSavedCostume();
+  }
+
+  Future<void> _loadSavedCostume() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(AppConstants.selectedCostumeKey);
+    setState(() {
+      _savedCostume = saved;
     });
   }
 
@@ -36,17 +48,77 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Stack(
                 children: [
                   // Avatar positioned between Friends button and Goals button
-                  Positioned( top: 60, left: 0,right: 0, // Position below Friends button area left: 0, right: 0,
+                  Positioned(
+                    top: 60,
+                    left: 0,
+                    right:
+                        0, // Position below Friends button area left: 0, right: 0,
                     child: Center(
-                      child: Image.asset(
-                        'assets/images/avatar.png',
-                        width: 400,
-                        height: 400,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          // Fallback widget if PNG is not found
-                          return _buildFallbackAvatar();
-                        },
+                      child: SizedBox(
+                        width: AppConstants.avatarCostumeWidth,
+                        height: AppConstants.avatarCostumeWidth,
+                        child: Stack(
+                          children: [
+                            // Avatar base
+                            Positioned.fill(
+                              child: Image.asset(
+                                'assets/images/avatar.png',
+                                width: AppConstants.avatarCostumeWidth,
+                                height: AppConstants.avatarCostumeWidth,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return _buildFallbackAvatar();
+                                },
+                              ),
+                            ),
+
+                            // Hat overlay placed in the same layer and positioned relative
+                            // to the avatar using the shared alignment and per-costume offsets.
+                            if (_savedCostume != null)
+                              Builder(
+                                builder: (context) {
+                                  final avatarW =
+                                      AppConstants.avatarCostumeWidth;
+                                  final avatarH = avatarW; // square avatar
+                                  final hatW =
+                                      avatarW *
+                                      AppConstants.costumeHatWidthFactor;
+                                  final alignY =
+                                      AppConstants.costumeHatAlignmentY;
+
+                                  // alignmentY (-1..1) -> fraction from top (0..1)
+                                  final fracFromTop = (alignY + 1) / 2;
+
+                                  // center Y position in pixels where the hat's center should be
+                                  final centerY = avatarH * fracFromTop;
+
+                                  // top-left for the hat so that its center is at centerY
+                                  final hatTop = centerY - (hatW / 2);
+                                  final hatLeft = (avatarW - hatW) / 2;
+
+                                  // Apply per-costume pixel nudges (x, y)
+                                  final perOffset =
+                                      AppConstants
+                                          .costumeOffsets[_savedCostume ??
+                                          ''] ??
+                                      Offset.zero;
+
+                                  return Positioned(
+                                    left: hatLeft + perOffset.dx,
+                                    top: hatTop + perOffset.dy,
+                                    width: hatW,
+                                    child: Image.asset(
+                                      'assets/images/$_savedCostume',
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const SizedBox.shrink(),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -102,8 +174,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 label: 'Costume',
                 color: Colors.purple.shade600,
                 onTap: () {
-                  // TODO: Navigate to costume page
-                  _showComingSoonDialog(context, 'Costume');
+                  context.go(AppConstants.costumeRoute);
                 },
               ),
               const SizedBox(height: 8),
@@ -292,8 +363,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Widget _buildFallbackAvatar() {
     return Container(
-      width: 400,
-      height: 400,
+      width: AppConstants.avatarCostumeWidth,
+      height: AppConstants.avatarCostumeWidth,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.grey.shade300, Colors.grey.shade400],
