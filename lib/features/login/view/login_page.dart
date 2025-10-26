@@ -341,6 +341,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _buildFooter() {
     return Column(
       children: [
+        // Register Link
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Don't have an account? ",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => context.go('/register'),
+              child: Text(
+                'Sign Up',
+                style: TextStyle(
+                  color: Colors.blue.shade600,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
         Text(
           '© 2025 Bento App',
           style: TextStyle(

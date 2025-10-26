@@ -10,7 +10,9 @@ class CustomTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final VoidCallback? onTap;
   final bool enabled;
+  final bool readOnly;
   final int maxLines;
 
   const CustomTextField({
@@ -24,7 +26,9 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     this.onChanged,
+    this.onTap,
     this.enabled = true,
+    this.readOnly = false,
     this.maxLines = 1,
   });
 
@@ -36,7 +40,9 @@ class CustomTextField extends StatelessWidget {
       obscureText: obscureText,
       validator: validator,
       onChanged: onChanged,
+      onTap: onTap,
       enabled: enabled,
+      readOnly: readOnly,
       maxLines: maxLines,
       style: const TextStyle(
         color: Colors.black, // ข้อความที่พิมพ์จะเป็นสีดำ

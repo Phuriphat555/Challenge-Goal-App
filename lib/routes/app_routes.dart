@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/login/view/login_page.dart';
+import '../features/register page/register_page.dart';
 import '../features/profile/view/profile_page.dart';
 import '../features/profile/view/reset_password_page.dart';
 import '../features/home/view/home_page.dart';
@@ -36,10 +37,11 @@ class AppRoutes {
     redirect: (context, state) async {
       // ตรวจสอบว่าผู้ใช้กำลังเข้าถึงหน้าไหน
       final isLoginRoute = state.matchedLocation == AppConstants.loginRoute;
+      final isRegisterRoute = state.matchedLocation == AppConstants.registerRoute;
       final isResetPasswordRoute = state.matchedLocation == AppConstants.resetPasswordRoute;
 
-      // อนุญาตให้เข้าถึงหน้า Login และ Reset Password ได้เสมอ (Public Routes)
-      if (isLoginRoute || isResetPasswordRoute) return null;
+      // อนุญาตให้เข้าถึงหน้า Login, Register และ Reset Password ได้เสมอ (Public Routes)
+      if (isLoginRoute || isRegisterRoute || isResetPasswordRoute) return null;
 
       // สำหรับหน้าที่ต้อง login (Protected Routes) - ตรวจสอบสถานะการ login
       final isLoggedIn = await _authService.isLoggedIn();
@@ -55,6 +57,12 @@ class AppRoutes {
         path: AppConstants.loginRoute,
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+
+      GoRoute(
+        path: AppConstants.registerRoute,
+        name: 'register',
+        builder: (context, state) => const RegisterPage(),
       ),
 
       GoRoute(
@@ -154,6 +162,7 @@ class AppRoutes {
 // Extension for easier navigation
 extension AppRouterExtension on GoRouter {
   void goToLogin() => go(AppConstants.loginRoute);
+  void goToRegister() => go(AppConstants.registerRoute);
   void goToProfile() => go(AppConstants.profileRoute);
   void goToResetPassword() => go(AppConstants.resetPasswordRoute);
   void goToHome() => go(AppConstants.homeRoute);
