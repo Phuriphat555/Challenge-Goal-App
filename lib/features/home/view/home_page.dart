@@ -166,7 +166,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
           const Spacer(),
 
-          // Costume & Premium Buttons (Top Right - Stacked)
+          // Costume Button (Top Right)
           Column(
             children: [
               _buildSquareButton(
@@ -175,16 +175,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 color: Colors.purple.shade600,
                 onTap: () {
                   context.go(AppConstants.costumeRoute);
-                },
-              ),
-              const SizedBox(height: 8),
-              _buildSquareButton(
-                icon: Icons.workspace_premium_outlined,
-                label: 'Premium',
-                color: Colors.orange.shade600,
-                onTap: () {
-                  // TODO: Navigate to premium page
-                  _showComingSoonDialog(context, 'Premium');
                 },
               ),
             ],
